@@ -20,7 +20,7 @@ module.exports = async function handler(req, res) {
     const behavior = ALLOWED_BEHAVIORS.indexOf(body.behavior) !== -1 ? body.behavior : 'void';
 
     const customerId = await getStripeCustomerId(token);
-    const sub = await getSubscription(customerId);
+    const sub = await getSubscription(customerId, body.priceId);
     if (!sub) return res.status(404).json({ error: 'No subscription found to pause' });
 
     const resumeDate = new Date();

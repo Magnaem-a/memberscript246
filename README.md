@@ -14,11 +14,13 @@ All endpoints are `POST` and take a JSON body containing the member's Memberstac
 
 | Endpoint | Body | Returns |
 |---|---|---|
-| `/api/status` | `{ token }` | `{ hasSubscription, subscriptionId, status, paused, resumesAt }` |
-| `/api/pause` | `{ token, months, behavior? }` | `{ paused: true, subscriptionId, resumesAt }` |
-| `/api/resume` | `{ token }` | `{ paused: false, subscriptionId, status }` |
+| `/api/status` | `{ token, priceId? }` | `{ hasSubscription, subscriptionId, status, paused, resumesAt }` |
+| `/api/pause` | `{ token, months, behavior?, priceId? }` | `{ paused: true, subscriptionId, resumesAt }` |
+| `/api/resume` | `{ token, priceId? }` | `{ paused: false, subscriptionId, status }` |
 
 The Stripe customer ID is always derived from the **verified token**, never the request body, so a member can only ever act on their own subscription.
+
+`priceId` is optional. Pass a Stripe **price ID** to target one plan when a member has more than one paid subscription; omit it for single-plan members (the first active subscription is used).
 
 ---
 

@@ -34,13 +34,24 @@ async function getStripeCustomerId(token) {
 }
 
 // Return the member's most relevant subscription (active or paused), or null.
-async function getSubscription(customerId) {
+// When priceId is provided, only subscriptions that contain that Stripe price are
+// considered — this is how a member with more than one paid plan targets the right
+// one. Without it, the first active subscription is used (single-plan default).
+async function getSubscription(customerId, priceId) {
   const list = await stripe.subscriptions.list({
     customer: customerId,
     status: 'all',
     limit: 100
   });
-  const subs = list.data || [];
+  let subs = list.data || [];
+
+  if (priceId) {
+    subs = subs.filter(function(s) {
+      const items = (s.items && s.items.data) || [];
+      return items.some(function(it) { return it.price && it.price.id === priceId; });
+    });
+  }
+
   const live = subs.filter(function(s) {
     return s.status === 'active' || s.status === 'trialing' || s.status === 'past_due';
   });

@@ -6,9 +6,9 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { token } = readBody(req);
+    const { token, priceId } = readBody(req);
     const customerId = await getStripeCustomerId(token);
-    const sub = await getSubscription(customerId);
+    const sub = await getSubscription(customerId, priceId);
     if (!sub) return res.status(404).json({ error: 'No subscription found to resume' });
 
     // Passing an empty string clears the pause and resumes billing now.
