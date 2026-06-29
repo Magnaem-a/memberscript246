@@ -34,9 +34,11 @@ async function getStripeCustomerId(token) {
 }
 
 // Return the member's most relevant subscription (active or paused), or null.
-// When priceId is provided, only subscriptions that contain that Stripe price are
-// considered — this is how a member with more than one paid plan targets the right
-// one. Without it, the first active subscription is used (single-plan default).
+// When a STRIPE identifier is provided (price ID "price_..." or product ID
+// "prod_..."), only subscriptions containing it are considered — this is how a
+// member with more than one paid plan targets the right one. Any other value
+// (e.g. a Memberstack "prc_"/"pln_" ID, which can't be matched against Stripe)
+// is ignored, and the first active subscription is used (single-plan default).
 async function getSubscription(customerId, priceId) {
   const list = await stripe.subscriptions.list({
     customer: customerId,
@@ -45,11 +47,18 @@ async function getSubscription(customerId, priceId) {
   });
   let subs = list.data || [];
 
-  if (priceId) {
+  const isStripePrice = typeof priceId === 'string' && priceId.indexOf('price_') === 0;
+  const isStripeProduct = typeof priceId === 'string' && priceId.indexOf('prod_') === 0;
+  if (isStripePrice || isStripeProduct) {
     subs = subs.filter(function(s) {
       const items = (s.items && s.items.data) || [];
-      return items.some(function(it) { return it.price && it.price.id === priceId; });
+      return items.some(function(it) {
+        if (!it.price) return false;
+        return isStripeProduct ? it.price.product === priceId : it.price.id === priceId;
+      });
     });
+  } else if (priceId) {
+    console.warn('Memberscript #246: ms-code-price-id "' + priceId + '" is not a Stripe price/product ID (expected "price_..."). Ignoring it and using the first active subscription.');
   }
 
   const live = subs.filter(function(s) {

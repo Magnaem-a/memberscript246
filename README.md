@@ -20,7 +20,7 @@ All endpoints are `POST` and take a JSON body containing the member's Memberstac
 
 The Stripe customer ID is always derived from the **verified token**, never the request body, so a member can only ever act on their own subscription.
 
-`priceId` is optional. Pass a Stripe **price ID** to target one plan when a member has more than one paid subscription; omit it for single-plan members (the first active subscription is used).
+`priceId` is optional. Pass a **Stripe** price ID (`price_...`) — *not* the Memberstack `prc_` ID — to target one plan when a member has more than one paid subscription; omit it for single-plan members (the first active subscription is used). A non-Stripe value is ignored and the first active subscription is used.
 
 ---
 
